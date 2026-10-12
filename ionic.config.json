@@ -1,0 +1,7 @@
+{
+  "name": "GeoExpo",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular-standalone"
+}
