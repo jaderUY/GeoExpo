@@ -1,9 +1,9 @@
-<ion-content [fullscreen]="true" [scrollY]="false" class="mapa-content">
+<div class="mapa-wrapper">
 
-  <!-- Contenedor del mapa Leaflet -->
+  <!-- ═══════ MAPA: div plano, sin ion-content ═══════ -->
   <div #mapContainer id="geoexpo-map"></div>
 
-  <!-- ═══════ CHIPS DE CATEGORÍAS (flotantes arriba) ═══════ -->
+  <!-- ═══════ CHIPS ═══════ -->
   <div class="chips-overlay">
     <ion-chip
       class="cat-chip"
@@ -24,73 +24,71 @@
     }
   </div>
 
-  <!-- ═══════ FABs (abajo derecha, encima del tab bar) ═══════ -->
-  <ion-fab vertical="bottom" horizontal="end" slot="fixed" class="fab-stack">
-    <ion-fab-button class="fab-ruta" (click)="trazarRutaAlSeleccionado()" [disabled]="!lugarSeleccionado()">
+  <!-- ═══════ FABs ═══════ -->
+  <div class="fab-stack">
+    <button
+      type="button"
+      class="fab-btn fab-ruta"
+      [disabled]="!lugarSeleccionado()"
+      (click)="trazarRutaAlSeleccionado()">
       <ion-icon name="navigate-circle"></ion-icon>
-    </ion-fab-button>
+    </button>
 
-    <ion-fab-button class="fab-ubicacion" (click)="centrarEnMiUbicacion()">
+    <button
+      type="button"
+      class="fab-btn fab-ubicacion"
+      (click)="centrarEnMiUbicacion()">
       <ion-icon name="navigate"></ion-icon>
-    </ion-fab-button>
-  </ion-fab>
+    </button>
+  </div>
 
-  <!-- ═══════ BOTTOM SHEET (ion-modal) ═══════ -->
-  <ion-modal
-    [isOpen]="isSheetOpen()"
-    [initialBreakpoint]="0.45"
-    [breakpoints]="[0, 0.45, 0.9]"
-    [handleBehavior]="'cycle'"
-    (ionModalDidDismiss)="cerrarDetalle()">
+</div>
 
-    @if (lugarSeleccionado(); as lugar) {
-      <ion-content class="sheet-content">
-        <div class="sheet-body">
+<!-- ═══════ MODAL (fuera del wrapper) ═══════ -->
+<ion-modal
+  [isOpen]="isSheetOpen()"
+  [initialBreakpoint]="0.45"
+  [breakpoints]="[0, 0.45, 0.9]"
+  [handleBehavior]="'cycle'"
+  (ionModalDidDismiss)="cerrarDetalle()">
 
-          <!-- Handle visual -->
-          <div class="sheet-handle"></div>
+  @if (lugarSeleccionado(); as lugar) {
+    <ion-content class="sheet-content">
+      <div class="sheet-body">
+        <div class="sheet-handle"></div>
 
-          <!-- Título + botón cerrar -->
-          <div class="sheet-header">
-            <div class="sheet-title-block">
-              <span class="sheet-tag">
-                {{ labelDeCategoria(lugar.categoria) }}
-              </span>
-              <h2 class="sheet-title">{{ lugar.nombre }}</h2>
-              <p class="sheet-coords">{{ formatearCoordenadas(lugar) }}</p>
-            </div>
-            <button class="sheet-close" (click)="cerrarDetalle()">
-              <ion-icon name="close"></ion-icon>
-            </button>
+        <div class="sheet-header">
+          <div class="sheet-title-block">
+            <span class="sheet-tag">{{ labelDeCategoria(lugar.categoria) }}</span>
+            <h2 class="sheet-title">{{ lugar.nombre }}</h2>
+            <p class="sheet-coords">{{ formatearCoordenadas(lugar) }}</p>
           </div>
-
-          <!-- Distancia -->
-          @if (distanciaTexto(lugar)) {
-            <div class="sheet-distance">
-              <ion-icon name="location"></ion-icon>
-              <span>A {{ distanciaTexto(lugar) }} de ti</span>
-            </div>
-          }
-
-          <!-- Comentario -->
-          @if (lugar.comentario) {
-            <div class="sheet-comment">
-              <p>{{ lugar.comentario }}</p>
-            </div>
-          }
-
-          <!-- CTA: cómo llegar -->
-          <ion-button
-            expand="block"
-            class="sheet-cta"
-            (click)="trazarRutaAlSeleccionado()">
-            <ion-icon slot="start" name="navigate-circle"></ion-icon>
-            Cómo llegar
-          </ion-button>
-
+          <button class="sheet-close" (click)="cerrarDetalle()">
+            <ion-icon name="close"></ion-icon>
+          </button>
         </div>
-      </ion-content>
-    }
-  </ion-modal>
 
-</ion-content>
+        @if (distanciaTexto(lugar)) {
+          <div class="sheet-distance">
+            <ion-icon name="location"></ion-icon>
+            <span>A {{ distanciaTexto(lugar) }} de ti</span>
+          </div>
+        }
+
+        @if (lugar.comentario) {
+          <div class="sheet-comment">
+            <p>{{ lugar.comentario }}</p>
+          </div>
+        }
+
+        <ion-button
+          expand="block"
+          class="sheet-cta"
+          (click)="trazarRutaAlSeleccionado()">
+          <ion-icon slot="start" name="navigate-circle"></ion-icon>
+          Cómo llegar
+        </ion-button>
+      </div>
+    </ion-content>
+  }
+</ion-modal>
