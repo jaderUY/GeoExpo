@@ -1,13 +1,96 @@
-<ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-title>mapa</ion-title>
-  </ion-toolbar>
-</ion-header>
+<ion-content [fullscreen]="true" [scrollY]="false" class="mapa-content">
 
-<ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">mapa</ion-title>
-    </ion-toolbar>
-  </ion-header>
+  <!-- Contenedor del mapa Leaflet -->
+  <div #mapContainer id="geoexpo-map"></div>
+
+  <!-- ═══════ CHIPS DE CATEGORÍAS (flotantes arriba) ═══════ -->
+  <div class="chips-overlay">
+    <ion-chip
+      class="cat-chip"
+      [class.active]="categoriaActiva() === 'todos'"
+      (click)="seleccionarCategoria('todos')">
+      <ion-icon name="map"></ion-icon>
+      <ion-label>Todos</ion-label>
+    </ion-chip>
+
+    @for (cat of categorias; track cat.key) {
+      <ion-chip
+        class="cat-chip"
+        [class.active]="categoriaActiva() === cat.key"
+        (click)="seleccionarCategoria(cat.key)">
+        <ion-icon [name]="cat.icon"></ion-icon>
+        <ion-label>{{ cat.label }}</ion-label>
+      </ion-chip>
+    }
+  </div>
+
+  <!-- ═══════ FABs (abajo derecha, encima del tab bar) ═══════ -->
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed" class="fab-stack">
+    <ion-fab-button class="fab-ruta" (click)="trazarRutaAlSeleccionado()" [disabled]="!lugarSeleccionado()">
+      <ion-icon name="navigate-circle"></ion-icon>
+    </ion-fab-button>
+
+    <ion-fab-button class="fab-ubicacion" (click)="centrarEnMiUbicacion()">
+      <ion-icon name="navigate"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+
+  <!-- ═══════ BOTTOM SHEET (ion-modal) ═══════ -->
+  <ion-modal
+    [isOpen]="isSheetOpen()"
+    [initialBreakpoint]="0.45"
+    [breakpoints]="[0, 0.45, 0.9]"
+    [handleBehavior]="'cycle'"
+    (ionModalDidDismiss)="cerrarDetalle()">
+
+    @if (lugarSeleccionado(); as lugar) {
+      <ion-content class="sheet-content">
+        <div class="sheet-body">
+
+          <!-- Handle visual -->
+          <div class="sheet-handle"></div>
+
+          <!-- Título + botón cerrar -->
+          <div class="sheet-header">
+            <div class="sheet-title-block">
+              <span class="sheet-tag">
+                {{ labelDeCategoria(lugar.categoria) }}
+              </span>
+              <h2 class="sheet-title">{{ lugar.nombre }}</h2>
+              <p class="sheet-coords">{{ formatearCoordenadas(lugar) }}</p>
+            </div>
+            <button class="sheet-close" (click)="cerrarDetalle()">
+              <ion-icon name="close"></ion-icon>
+            </button>
+          </div>
+
+          <!-- Distancia -->
+          @if (distanciaTexto(lugar)) {
+            <div class="sheet-distance">
+              <ion-icon name="location"></ion-icon>
+              <span>A {{ distanciaTexto(lugar) }} de ti</span>
+            </div>
+          }
+
+          <!-- Comentario -->
+          @if (lugar.comentario) {
+            <div class="sheet-comment">
+              <p>{{ lugar.comentario }}</p>
+            </div>
+          }
+
+          <!-- CTA: cómo llegar -->
+          <ion-button
+            expand="block"
+            class="sheet-cta"
+            (click)="trazarRutaAlSeleccionado()">
+            <ion-icon slot="start" name="navigate-circle"></ion-icon>
+            Cómo llegar
+          </ion-button>
+
+        </div>
+      </ion-content>
+    }
+  </ion-modal>
+
 </ion-content>

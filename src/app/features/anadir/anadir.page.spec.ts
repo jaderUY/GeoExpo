@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { AnadirPage } from './anadir.page';
+import { describe, it, expect, beforeEach } from '@jest/globals';
 
 describe('AnadirPage', () => {
   let component: AnadirPage;

@@ -1,19 +1,229 @@
-import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { IonContent, IonHeader, IonTitle, IonToolbar } from '@ionic/angular';
+import { AfterViewInit, Component, ElementRef, OnDestroy, ViewChild, inject, signal, computed, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { IonContent, IonChip, IonLabel, IonIcon, IonFab, IonFabButton, IonModal, IonButton } from '@ionic/angular';
+import { addIcons } from 'ionicons';
+import { map as mapIcon, navigate, navigateCircle, cafe, restaurant, people, information, pricetag, sparkles, close, add, location, checkmarkCircle } from 'ionicons/icons';
+import * as L from 'leaflet';
+import { PLACES_PORT } from '../../core/ports';
+import { GeoService, Coordenada } from '../../core/services/geo';
+import { CATEGORIAS, CategoriaLugar, Lugar } from '../../core/models';
 
 @Component({
   selector: 'app-mapa',
+  standalone: true,
   templateUrl: './mapa.page.html',
   styleUrls: ['./mapa.page.scss'],
-  imports: [IonContent, IonHeader, IonTitle, IonToolbar, CommonModule, FormsModule]
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
+  imports: [ IonContent, IonChip, IonLabel, IonIcon, IonFab, IonFabButton, IonModal, IonButton,
+  ],
 })
-export class MapaPage implements OnInit {
+export class MapaPage implements AfterViewInit, OnDestroy {
+  // ── DI ─────────────────────────────────────────────
+  private placesPort = inject(PLACES_PORT);
+  private geo = inject(GeoService);
 
-  constructor() { }
+  // ── Referencia al div del mapa ────────────────────
+  @ViewChild('mapContainer', { static: false })
+  mapContainer!: ElementRef<HTMLDivElement>;
 
-  ngOnInit() {
+  // ── Estado con signals ────────────────────────────
+  private leafletMap!: L.Map;
+  private markersLayer = L.layerGroup();
+  private rutaLayer?: L.Polyline;
+  private markerUsuario?: L.Marker;
+  private iconoUsuario!: L.DivIcon;
+
+  lugares = signal<Lugar[]>([]);
+  categoriaActiva = signal<CategoriaLugar | 'todos'>('todos');
+  ubicacionUsuario = signal<Coordenada | null>(null);
+  lugarSeleccionado = signal<Lugar | null>(null);
+  isSheetOpen = signal(false);
+
+  categorias = CATEGORIAS;
+
+  lugaresFiltrados = computed(() => {
+    const cat = this.categoriaActiva();
+    const lista = this.lugares();
+    return cat === 'todos' ? lista : lista.filter(l => l.categoria === cat);
+  });
+
+  // ── Íconos personalizados con divIcon (usan CSS) ──
+  private iconoPorCategoria(cat: CategoriaLugar): L.DivIcon {
+    const meta = CATEGORIAS.find(c => c.key === cat)!;
+    return L.divIcon({
+      className: 'geoexpo-marker',
+      html: `
+        <div class="marker-pin marker-${meta.key}">
+          <ion-icon name="${meta.icon}"></ion-icon>
+        </div>
+      `,
+      iconSize: [40, 40],
+      iconAnchor: [20, 40],
+      popupAnchor: [0, -40],
+    });
   }
 
+  constructor() {
+    addIcons({ mapIcon, navigate, navigateCircle, cafe, restaurant, people, information, pricetag, sparkles, close, add, location, checkmarkCircle,});
+  }
+
+  // ── Ciclo de vida ─────────────────────────────────
+  async ngAfterViewInit() {
+    // 1. Cargar lugares desde el port
+    const lista = await this.placesPort.list();
+    this.lugares.set(lista);
+
+    // 2. Obtener ubicación del usuario
+    try {
+      const coord = await this.geo.getCurrentPosition();
+      this.ubicacionUsuario.set(coord);
+    } catch (e) {
+      console.warn('No se pudo obtener la ubicación', e);
+    }
+
+    // 3. Inicializar el mapa (después de un tick para que el div exista)
+    setTimeout(() => this.initMap(), 0);
+  }
+
+  ngOnDestroy() {
+    this.leafletMap?.remove();
+  }
+
+  // ── Inicialización del mapa ───────────────────────
+  private initMap() {
+    const ubi = this.ubicacionUsuario();
+    const center: [number, number] = ubi
+      ? [ubi.lat, ubi.lng]
+      : [4.60971, -74.08175]; // Bogotá por defecto
+
+    this.leafletMap = L.map(this.mapContainer.nativeElement, {
+      zoomControl: false,
+      attributionControl: true,
+    }).setView(center, 16);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution:
+        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    }).addTo(this.leafletMap);
+
+    this.markersLayer.addTo(this.leafletMap);
+
+    // Ícono del usuario
+    this.iconoUsuario = L.divIcon({
+      className: 'geoexpo-user',
+      html: `<div class="user-pulse"><span></span></div>`,
+      iconSize: [30, 30],
+      iconAnchor: [15, 15],
+    });
+
+    if (ubi) {
+      this.markerUsuario = L.marker([ubi.lat, ubi.lng], { icon: this.iconoUsuario })
+        .addTo(this.leafletMap)
+        .bindPopup('Estás aquí 📍');
+    }
+
+    this.renderMarkers();
+
+    // Forzar re-cálculo de tamaño tras el render inicial
+    setTimeout(() => this.leafletMap.invalidateSize(), 150);
+  }
+
+  // ── Render de marcadores según filtro ─────────────
+  private renderMarkers() {
+    this.markersLayer.clearLayers();
+
+    this.lugaresFiltrados().forEach(lugar => {
+      const marker = L.marker([lugar.lat, lugar.lng], {
+        icon: this.iconoPorCategoria(lugar.categoria),
+      });
+
+      marker.on('click', () => this.abrirDetalle(lugar));
+      marker.addTo(this.markersLayer);
+    });
+  }
+
+  // ── Selección de categoría ────────────────────────
+  seleccionarCategoria(cat: CategoriaLugar | 'todos') {
+    this.categoriaActiva.set(cat);
+    this.renderMarkers();
+  }
+
+  // ── Bottom-sheet: abrir/cerrar detalle ────────────
+  abrirDetalle(lugar: Lugar) {
+    this.lugarSeleccionado.set(lugar);
+    this.isSheetOpen.set(true);
+  }
+
+  cerrarDetalle() {
+    this.isSheetOpen.set(false);
+    this.lugarSeleccionado.set(null);
+  }
+
+  // ── FAB: centrar en mi ubicación ──────────────────
+  async centrarEnMiUbicacion() {
+    try {
+      const coord = await this.geo.getCurrentPosition();
+      this.ubicacionUsuario.set(coord);
+      this.leafletMap.flyTo([coord.lat, coord.lng], 17, { duration: 0.8 });
+
+      if (this.markerUsuario) {
+        this.markerUsuario.setLatLng([coord.lat, coord.lng]);
+      } else {
+        this.markerUsuario = L.marker([coord.lat, coord.lng], { icon: this.iconoUsuario })
+          .addTo(this.leafletMap)
+          .bindPopup('Estás aquí 📍');
+      }
+    } catch (e) {
+      console.error('Error obteniendo ubicación', e);
+    }
+  }
+
+  // ── FAB: trazar ruta al lugar seleccionado ────────
+  async trazarRutaAlSeleccionado() {
+    const destino = this.lugarSeleccionado();
+    const origen = this.ubicacionUsuario();
+    if (!destino || !origen) return;
+
+    try {
+      const coords = await this.geo.obtenerRuta(origen, {
+        lat: destino.lat,
+        lng: destino.lng,
+      });
+
+      if (this.rutaLayer) this.leafletMap.removeLayer(this.rutaLayer);
+
+      this.rutaLayer = L.polyline(coords, {
+        color: '#0056c4',
+        weight: 5,
+        opacity: 0.85,
+      }).addTo(this.leafletMap);
+
+      this.leafletMap.fitBounds(this.rutaLayer.getBounds(), { padding: [60, 60] });
+      this.cerrarDetalle();
+    } catch (e) {
+      console.error('Error trazando ruta', e);
+    }
+  }
+
+  // ── Helpers de presentación ───────────────────────
+  iconoDeCategoria(cat: CategoriaLugar): string {
+    return CATEGORIAS.find(c => c.key === cat)?.icon ?? 'pricetag';
+  }
+
+  labelDeCategoria(cat: CategoriaLugar): string {
+    return CATEGORIAS.find(c => c.key === cat)?.label ?? 'Otro';
+  }
+
+  distanciaTexto(lugar: Lugar): string {
+    const u = this.ubicacionUsuario();
+    if (!u) return '';
+    const m = this.geo.distanciaMetros(u, { lat: lugar.lat, lng: lugar.lng });
+    return this.geo.formatearDistancia(m);
+  }
+
+  formatearCoordenadas(lugar: Lugar): string {
+    const lat = lugar.lat.toFixed(4) + '° N';
+    const lng = Math.abs(lugar.lng).toFixed(4) + '° O';
+    return `Lat: ${lat} · Lng: ${lng}`;
+  }
 }
