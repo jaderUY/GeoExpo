@@ -1,10 +1,7 @@
 import { Routes } from '@angular/router';
+import { TabsPage } from './features/tabs/tabs.page';
 
 export const routes: Routes = [
-  {
-    path: 'home',
-    loadComponent: () => import('./features/tabs/tabs.page').then((m) => m.TabsPage),
-  },
   {
     path: '',
     redirectTo: 'tabs/mapa',
@@ -12,22 +9,49 @@ export const routes: Routes = [
   },
   {
     path: 'tabs',
-    loadComponent: () => import('./features/tabs/tabs.page').then( m => m.TabsPage)
+    component: TabsPage,
+    children: [
+      {
+        path: '',
+        redirectTo: 'mapa',
+        pathMatch: 'full',
+      },
+      {
+        path: 'mapa',
+        loadComponent: () => import('./features/mapa/mapa.page').then((m) => m.MapaPage),
+      },
+      {
+        path: 'guardados',
+        loadComponent: () => import('./features/guardados/guardados.page').then((m) => m.GuardadosPage),
+      },
+      {
+        path: 'anadir',
+        loadComponent: () => import('./features/anadir/anadir.page').then((m) => m.AnadirPage),
+      },
+      {
+        path: 'perfil',
+        loadComponent: () => import('./features/perfil/perfil.page').then((m) => m.PerfilPage),
+      },
+    ],
   },
   {
     path: 'mapa',
-    loadComponent: () => import('./features/mapa/mapa.page').then( m => m.MapaPage)
+    redirectTo: 'tabs/mapa',
+    pathMatch: 'full',
   },
   {
     path: 'guardados',
-    loadComponent: () => import('./features/guardados/guardados.page').then( m => m.GuardadosPage)
+    redirectTo: 'tabs/guardados',
+    pathMatch: 'full',
   },
   {
     path: 'anadir',
-    loadComponent: () => import('./features/anadir/anadir.page').then( m => m.AnadirPage)
+    redirectTo: 'tabs/anadir',
+    pathMatch: 'full',
   },
   {
     path: 'perfil',
-    loadComponent: () => import('./features/perfil/perfil.page').then( m => m.PerfilPage)
+    redirectTo: 'tabs/perfil',
+    pathMatch: 'full',
   },
 ];

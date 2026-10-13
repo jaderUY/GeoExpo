@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { TabsPage } from './tabs.page';
+import { describe, it, beforeEach, expect } from '@jest/globals';
 
 describe('TabsPage', () => {
   let component: TabsPage;

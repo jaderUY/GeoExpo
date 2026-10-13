@@ -36,3 +36,14 @@
 /* @import "@ionic/angular/css/palettes/dark.class.css"; */
 // @import '@ionic/angular/css/palettes/dark.system.css';
 @import 'leaflet/dist/leaflet.css';
+
+:root { 
+    --ion-font-family: 'Inter', system-ui, sans-serif; 
+}
+html, body, ion-app { 
+    height: 100%; 
+}
+body { 
+    margin: 0; 
+    overscroll-behavior: none; 
+}
