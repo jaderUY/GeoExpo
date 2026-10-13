@@ -7,6 +7,7 @@
   <div class="chips-overlay">
     <ion-chip
       class="cat-chip"
+      button="true"
       [class.active]="categoriaActiva() === 'todos'"
       (click)="seleccionarCategoria('todos')">
       <ion-icon name="map"></ion-icon>
@@ -16,6 +17,7 @@
     @for (cat of categorias; track cat.key) {
       <ion-chip
         class="cat-chip"
+        button="true"
         [class.active]="categoriaActiva() === cat.key"
         (click)="seleccionarCategoria(cat.key)">
         <ion-icon [name]="cat.icon"></ion-icon>

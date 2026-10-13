@@ -31,6 +31,7 @@
   height: 100%;
   z-index: 1;
   pointer-events: auto !important;
+  touch-action: none;
 }
 
 // ═══════════════════════════════════════════════════════
@@ -48,6 +49,7 @@
   padding: 0 16px;
   overflow-x: auto;
   pointer-events: auto;
+  touch-action: pan-x;
   scrollbar-width: none;
 
   &::-webkit-scrollbar { display: none; }
