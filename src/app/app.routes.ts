@@ -10,6 +10,7 @@ export const routes: Routes = [
   {
     path: 'tabs',
     component: TabsPage,
+    loadComponent: () => import('./features/tabs/tabs.page').then((m) => m.TabsPage),
     children: [
       {
         path: '',
@@ -54,4 +55,9 @@ export const routes: Routes = [
     redirectTo: 'tabs/perfil',
     pathMatch: 'full',
   },
+  {
+    path: '**',
+    redirectTo: 'tabs/mapa',
+    pathMatch: 'full',
+  }
 ];
