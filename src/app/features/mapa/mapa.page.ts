@@ -1,38 +1,7 @@
-import {
-  AfterViewInit,
-  Component,
-  ElementRef,
-  OnDestroy,
-  ViewChild,
-  inject,
-  signal,
-  computed,
-  CUSTOM_ELEMENTS_SCHEMA,
-} from '@angular/core';
-import {
-  IonContent,
-  IonChip,
-  IonLabel,
-  IonIcon,
-  IonModal,
-  IonButton,
-} from '@ionic/angular';
+import { AfterViewInit, Component, ElementRef, OnDestroy, ViewChild, inject, signal, computed, CUSTOM_ELEMENTS_SCHEMA} from '@angular/core';
+import { IonContent, IonChip, IonLabel, IonIcon, IonModal, IonButton} from '@ionic/angular';
 import { addIcons } from 'ionicons';
-import {
-  map as mapIcon,
-  navigate,
-  navigateCircle,
-  cafe,
-  restaurant,
-  people,
-  information,
-  pricetag,
-  sparkles,
-  close,
-  add,
-  location,
-  checkmarkCircle,
-} from 'ionicons/icons';
+import { map as mapIcon, navigate, navigateCircle, cafe, restaurant, people, information, pricetag, sparkles, close, add, location, checkmarkCircle } from 'ionicons/icons';
 import * as L from 'leaflet';
 
 import { PLACES_PORT } from '../../core/ports';
@@ -49,15 +18,15 @@ import { CATEGORIAS, CategoriaLugar, Lugar } from '../../core/models';
   host: { class: 'ion-page'},
 })
 export class MapaPage implements AfterViewInit, OnDestroy {
-  // ── DI ─────────────────────────────────────────────
+  // IDE: Inyección de dependencias
   private placesPort = inject(PLACES_PORT);
   private geo = inject(GeoService);
 
-  // ── Referencia al div del mapa ────────────────────
+  // referencia al contenedor del mapa
   @ViewChild('mapContainer', { static: false })
   mapContainer!: ElementRef<HTMLDivElement>;
 
-  // ── Estado con signals ────────────────────────────
+  // estado con signals
   private leafletMap!: L.Map;
   private markersLayer = L.layerGroup();
   private rutaLayer?: L.Polyline;
@@ -78,7 +47,7 @@ export class MapaPage implements AfterViewInit, OnDestroy {
     return cat === 'todos' ? lista : lista.filter(l => l.categoria === cat);
   });
 
-  // ── Íconos personalizados con divIcon ─────────────
+  // Icono de marcador según la categoría del lugar
   private iconoPorCategoria(cat: CategoriaLugar): L.DivIcon {
     const meta = CATEGORIAS.find(c => c.key === cat)!;
     return L.divIcon({
@@ -112,7 +81,7 @@ export class MapaPage implements AfterViewInit, OnDestroy {
     });
   }
 
-  // ── Ciclo de vida ─────────────────────────────────
+  // Ciclo de vida: inicialización y destrucción del mapa
   async ngAfterViewInit() {
     const lista = await this.placesPort.list();
     this.lugares.set(lista);
@@ -131,7 +100,7 @@ export class MapaPage implements AfterViewInit, OnDestroy {
     this.leafletMap?.remove();
   }
 
-  // ── Inicialización del mapa ───────────────────────
+  // inicialización del mapa: Leaflet, capa de marcadores y marcador de usuario
   private initMap() {
     const ubi = this.ubicacionUsuario();
     const center: [number, number] = ubi
@@ -169,7 +138,7 @@ export class MapaPage implements AfterViewInit, OnDestroy {
     setTimeout(() => this.leafletMap.invalidateSize(), 150);
   }
 
-  // ── Render de marcadores ──────────────────────────
+  // renderizado de marcadores: limpiar y volver a dibujar según la categoría activa
   private renderMarkers() {
     this.markersLayer.clearLayers();
 
@@ -183,13 +152,13 @@ export class MapaPage implements AfterViewInit, OnDestroy {
     });
   }
 
-  // ── Selección de categoría ────────────────────────
+  // selección de categoría: filtrar lugares por categoría
   seleccionarCategoria(cat: CategoriaLugar | 'todos') {
     this.categoriaActiva.set(cat);
     this.renderMarkers();
   }
 
-  // ── Bottom-sheet ──────────────────────────────────
+  // bottom sheet: abrir/cerrar detalle de lugar
   abrirDetalle(lugar: Lugar) {
     this.lugarSeleccionado.set(lugar);
     this.isSheetOpen.set(true);
@@ -200,7 +169,7 @@ export class MapaPage implements AfterViewInit, OnDestroy {
     this.lugarSeleccionado.set(null);
   }
 
-  // ── FAB: centrar en mi ubicación ──────────────────
+  //  FAB: centrar en la ubicación del usuario
   async centrarEnMiUbicacion() {
     try {
       const coord = await this.geo.getCurrentPosition();
@@ -219,7 +188,7 @@ export class MapaPage implements AfterViewInit, OnDestroy {
     }
   }
 
-  // ── FAB: trazar ruta ──────────────────────────────
+  // FAB: trazar ruta al lugar seleccionado
   async trazarRutaAlSeleccionado() {
     const destino = this.lugarSeleccionado();
     const origen = this.ubicacionUsuario();
@@ -246,7 +215,7 @@ export class MapaPage implements AfterViewInit, OnDestroy {
     }
   }
 
-  // ── Helpers ───────────────────────────────────────
+  // Helpers para la vista
   iconoDeCategoria(cat: CategoriaLugar): string {
     return CATEGORIAS.find(c => c.key === cat)?.icon ?? 'pricetag';
   }
