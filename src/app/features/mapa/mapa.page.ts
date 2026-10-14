@@ -18,6 +18,7 @@ import { CATEGORIAS, CategoriaLugar, Lugar } from '../../core/models';
   host: { class: 'ion-page'},
 })
 export class MapaPage implements AfterViewInit, OnDestroy {
+
   // IDE: Inyección de dependencias
   private placesPort = inject(PLACES_PORT);
   private geo = inject(GeoService);
