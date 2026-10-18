@@ -3,7 +3,9 @@ import { Geolocation } from '@capacitor/geolocation';
 
 export interface Coordenada { lat: number; lng: number; }
 
-@Injectable({ providedIn: 'root' })
+@Injectable({ 
+  providedIn: 'root' 
+})
 export class GeoService {
   private cache: Coordenada | null = null;
 

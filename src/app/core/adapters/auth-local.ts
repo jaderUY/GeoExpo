@@ -5,7 +5,9 @@ import { Usuario } from '../models';
 
 const KEY = 'geoexpo.user.v1';
 
-@Injectable()
+@Injectable({ 
+  providedIn: 'root' 
+})
 export class AuthLocalAdapter implements AuthPort {
 
   async currentUser(): Promise<Usuario | null> {

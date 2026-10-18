@@ -5,7 +5,9 @@ import { AuthPort } from '../ports';
 import { Usuario } from '../models';
 import { environment } from '../../../environments/environment';
 
-@Injectable()
+@Injectable({ 
+  providedIn: 'root' 
+})
 export class AuthHttpAdapter implements AuthPort {
   private http = inject(HttpClient);
   private base = `${environment.apiUrl}/auth`;

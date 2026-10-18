@@ -1,13 +1,117 @@
-<ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-title>guardados</ion-title>
+<ion-header translucent="true" class="ion-no-border">
+  <ion-toolbar color="light">
+    <ion-title class="ion-text-center">Mis Guardados</ion-title>
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">guardados</ion-title>
-    </ion-toolbar>
-  </ion-header>
+<ion-content [fullscreen]="true" class="ion-padding">
+  
+  <div class="list-container">
+    @if (lugares().length === 0) {
+      <!-- Empty State -->
+      <div class="empty-state">
+        <ion-icon name="bookmark"></ion-icon>
+        <h3>Sin lugares guardados</h3>
+        <p>Los lugares que guardes aparecerán aquí.</p>
+        <ion-button fill="outline" (click)="irAlMapa(null!)">Explorar el mapa</ion-button>
+      </div>
+    } @else {
+      <!-- Lista de Tarjetas -->
+      @for (lugar of lugares(); track lugar.id) {
+        <div class="card-place" (click)="abrirDetalle(lugar)">
+          
+          <div class="card-img">
+            @if (lugar.fotoUrl) {
+              <img [src]="lugar.fotoUrl" alt="foto" />
+            } @else {
+              <div class="img-fallback">
+                <ion-icon [name]="iconoDeCategoria(lugar.categoria)"></ion-icon>
+              </div>
+            }
+          </div>
+
+          <div class="card-content">
+            <span class="card-tag">{{ labelDeCategoria(lugar.categoria) }}</span>
+            <h2 class="card-title">{{ lugar.nombre }}</h2>
+            <p class="card-desc">{{ lugar.comentario || 'Sin descripción' }}</p>
+            
+            <div class="card-coords">
+              <ion-icon name="location"></ion-icon>
+              <code>Lat: {{ lugar.lat | number:'1.2-4' }}, Lng: {{ lugar.lng | number:'1.2-4' }}</code>
+            </div>
+          </div>
+
+        </div>
+      }
+    }
+  </div>
+
+  <!-- ═══════ MODAL DE DETALLE ═══════ -->
+  <ion-modal
+    [isOpen]="isModalOpen()"
+    [initialBreakpoint]="0.7"
+    [breakpoints]="[0, 0.7, 0.95]"
+    [handleBehavior]="'cycle'"
+    (ionModalDidDismiss)="cerrarDetalle()">
+    
+    @if (lugarSeleccionado(); as lugar) {
+      <ion-content class="ion-padding">
+        <div class="modal-body">
+          
+          <div class="modal-header">
+            <span class="modal-tag">{{ labelDeCategoria(lugar.categoria) }}</span>
+            <h2>{{ lugar.nombre }}</h2>
+            <button class="btn-close" (click)="cerrarDetalle()">
+              <ion-icon name="close"></ion-icon>
+            </button>
+          </div>
+
+          @if (lugar.fotoUrl) {
+            <div class="modal-image">
+              <img [src]="lugar.fotoUrl" alt="foto del lugar" />
+            </div>
+          }
+
+          <div class="modal-desc">
+            <p>{{ lugar.comentario || 'Sin descripción adicional.' }}</p>
+          </div>
+
+          <div class="modal-actions">
+            <ion-button expand="block" class="btn-primary" (click)="irAlMapa(lugar)">
+              <ion-icon slot="start" name="navigation"></ion-icon>
+              Ver en el mapa
+            </ion-button>
+            
+            <ion-button expand="block" color="danger" fill="outline" (click)="confirmarEliminar()">
+              <ion-icon slot="start" name="trash"></ion-icon>
+              Quitar de guardados
+            </ion-button>
+          </div>
+
+        </div>
+      </ion-content>
+    }
+  </ion-modal>
+
+  <!-- ═══════ ALERTA DE CONFIRMACIÓN ═══════ -->
+  <ion-alert
+    [isOpen]="isAlertOpen()"
+    header="¿Quitar lugar?"
+    message="Este lugar se eliminará de tu lista de guardados."
+    [buttons]="[
+      { text: 'Cancelar', role: 'cancel', handler: () => isAlertOpen.set(false) },
+      { text: 'Quitar', role: 'destructive', handler: () => eliminarLugar() }
+    ]"
+    (didDismiss)="isAlertOpen.set(false)">
+  </ion-alert>
+
+  <!-- ═══════ TOAST ═══════ -->
+  <ion-toast
+    [isOpen]="toastOpen()"
+    [message]="toastMessage()"
+    [duration]="2500"
+    color="dark"
+    (didDismiss)="toastOpen.set(false)">
+  </ion-toast>
+
 </ion-content>

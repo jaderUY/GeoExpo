@@ -5,7 +5,9 @@ import { PlacesPort } from '../ports';
 import { Lugar, CategoriaLugar } from '../models';
 import { environment } from '../../../environments/environment';
 
-@Injectable()
+@Injectable({ 
+  providedIn: 'root' 
+})
 export class PlacesHttpAdapter implements PlacesPort {
   private http = inject(HttpClient);
   private base = `${environment.apiUrl}/places`;

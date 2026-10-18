@@ -1,13 +1,132 @@
-<ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-title>anadir</ion-title>
+<ion-header translucent="true"  class="ion-no-border" >
+  <ion-toolbar color="light">
+    <ion-title class="ion-text-center">Añadir Lugar</ion-title>
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">anadir</ion-title>
-    </ion-toolbar>
-  </ion-header>
+<ion-content class="ion-padding" [fullscreen]="true">
+  
+  <div class="form-container">
+    
+    <!-- Estado de Ubicación -->
+    <div class="ubicacion-card">
+      @if (cargandoUbicacion()) {
+        <ion-spinner name="dots" color="primary"></ion-spinner>
+        <span>Obteniendo tu ubicación...</span>
+      } @else if (ubicacion()) {
+        <ion-icon name="location" color="primary"></ion-icon>
+        <div class="ubi-text">
+          <strong>Ubicación capturada</strong>
+          <span>Lat: {{ ubicacion()?.lat | number:'1.4-4' }}°, Lng: {{ ubicacion()?.lng | number:'1.4-4' }}°</span>
+        </div>
+        <button class="btn-refresh" (click)="obtenerUbicacion()">
+          <ion-icon name="refresh"></ion-icon>
+        </button>
+      } @else {
+        <ion-icon name="location" color="danger"></ion-icon>
+        <div class="ubi-text">
+          <strong>Sin ubicación</strong>
+          <span>Toca para reintentar</span>
+        </div>
+        <button class="btn-refresh" (click)="obtenerUbicacion()">
+          <ion-icon name="refresh"></ion-icon>
+        </button>
+      }
+    </div>
+
+    <!-- Nombre -->
+    <div class="input-group">
+      <label>Nombre del Sitio *</label>
+      <ion-item lines="none" class="custom-input">
+        <ion-input 
+          placeholder="Ej. Pabellón Tech - Stand 42" 
+          [value]="nombre()" 
+          (ionInput)="nombre.set($event.detail.value?.toString() ?? '')">
+        </ion-input>
+      </ion-item>
+    </div>
+
+    <!-- Categoría (Chips) -->
+    <div class="input-group">
+      <label>Categoría</label>
+      <div class="chips-container">
+        @for (cat of categorias; track cat.key) {
+          <ion-chip
+            class="cat-chip"
+            [class.active]="categoria() === cat.key"
+            (click)="seleccionarCategoria(cat.key)">
+            <ion-icon [name]="cat.icon"></ion-icon>
+            <ion-label>{{ cat.label }}</ion-label>
+          </ion-chip>
+        }
+      </div>
+    </div>
+
+    <!-- Foto Dropzone -->
+    <div class="input-group">
+      <label>Foto del Sitio (Opcional)</label>
+      <div class="photo-dropzone" (click)="tomarFoto()">
+        @if (fotoUrl()) {
+          <img [src]="fotoUrl()" alt="Foto del lugar" />
+          <button class="btn-remove-photo" (click)="$event.stopPropagation(); quitarFoto()">
+            <ion-icon name="close"></ion-icon>
+          </button>
+        } @else {
+          <div class="dropzone-empty">
+            <ion-icon name="camera"></ion-icon>
+            <span>Tomar o subir foto</span>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Comentario -->
+    <div class="input-group">
+      <label>Comentario o Descripción</label>
+      <ion-item lines="none" class="custom-input">
+        <ion-textarea 
+          placeholder="Detalles de acceso, referencias, etc..." 
+          rows="3"
+          [value]="comentario()" 
+          (ionInput)="comentario.set($event.detail.value ?? '')">
+        </ion-textarea>
+      </ion-item>
+    </div>
+
+    <!-- Toggle Público -->
+    <div class="toggle-group">
+      <div class="toggle-text">
+        <strong>Publicar para todos</strong>
+        <span>Visible inmediatamente en GeoExpo</span>
+      </div>
+      <ion-toggle [checked]="publico()" (ionChange)="publico.set($event.detail.checked)"></ion-toggle>
+    </div>
+
+    <!-- Botón Guardar -->
+    <ion-button 
+      expand="block" 
+      class="btn-guardar" 
+      [disabled]="guardando() || !ubicacion()"
+      (click)="guardar()">
+      @if (guardando()) {
+        <ion-spinner name="crescent" slot="start"></ion-spinner>
+        Guardando...
+      } @else {
+        <ion-icon slot="start" name="checkmark-circle"></ion-icon>
+        Guardar Lugar
+      }
+    </ion-button>
+
+  </div>
+
+  <!-- Toast para mensajes -->
+  <ion-toast
+    [isOpen]="toastOpen()"
+    [message]="toastMessage()"
+    [duration]="3000"
+    color="dark"
+    position="bottom"
+    (didDismiss)="toastOpen.set(false)">
+  </ion-toast>
+
 </ion-content>

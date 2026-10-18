@@ -5,7 +5,9 @@ import { Lugar, CategoriaLugar } from '../models';
 
 const KEY = 'geoexpo.places.v1';
 
-@Injectable()
+@Injectable({ 
+  providedIn: 'root' 
+})
 export class PlacesLocalAdapter implements PlacesPort {
 
   private cache: Lugar[] = [];
