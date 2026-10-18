@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { PerfilPage } from './perfil.page';
+import { describe, it, beforeEach, expect } from '@jest/globals';
 
 describe('PerfilPage', () => {
   let component: PerfilPage;
