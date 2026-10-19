@@ -1,5 +1,5 @@
 import { AfterViewInit, Component, ElementRef, OnDestroy, ViewChild, inject, signal, computed, CUSTOM_ELEMENTS_SCHEMA} from '@angular/core';
-import { IonContent, IonChip, IonLabel, IonIcon, IonModal, IonButton} from '@ionic/angular';
+import { IonContent, IonChip, IonLabel, IonIcon, IonModal, IonButton, NavController} from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { map as mapIcon, navigate, navigateCircle, cafe, restaurant, people, information, pricetag, sparkles, close, add, location, checkmarkCircle } from 'ionicons/icons';
 import * as L from 'leaflet';
@@ -22,6 +22,7 @@ export class MapaPage implements AfterViewInit, OnDestroy {
   // IDE: Inyección de dependencias
   private placesPort = inject(PLACES_PORT);
   private geo = inject(GeoService);
+  private navCtrl = inject(NavController);
 
   // referencia al contenedor del mapa
   @ViewChild('mapContainer', { static: false })
@@ -113,6 +114,15 @@ export class MapaPage implements AfterViewInit, OnDestroy {
       attributionControl: true,
     }).setView(center, 16);
 
+    this.leafletMap.on('dblclick', (e: L.LeafletMouseEvent) => {
+      const { lat, lng } = e.latlng;
+      
+      // Navegamos a la pestaña Añadir pasando las coordenadas
+      this.navCtrl.navigateForward('/tabs/anadir', {
+        state: { coords: { lat, lng } }
+      });
+    });
+
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
       attribution:
@@ -134,6 +144,7 @@ export class MapaPage implements AfterViewInit, OnDestroy {
         .bindPopup('Estás aquí 📍');
     }
 
+    this.markersLayer.addTo(this.leafletMap);
     this.renderMarkers();
 
     setTimeout(() => this.leafletMap.invalidateSize(), 150);
