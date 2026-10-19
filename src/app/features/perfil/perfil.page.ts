@@ -17,8 +17,7 @@ import { LocalNotificationsService } from '../../core/services/local-notificatio
   styleUrls: ['./perfil.page.scss'],
   imports: [
     IonHeader, IonToolbar, IonTitle, IonContent, IonButton, IonIcon, IonModal, IonAlert, IonItem, IonInput, IonSpinner, IonAvatar, IonLabel, FormsModule
-  ],
-  host: { class: 'ion-page' }
+  ]
 })
 export class PerfilPage {
   private authPort = inject(AUTH_PORT);

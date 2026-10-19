@@ -1,21 +1,23 @@
-import { Component, Inject } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { IonApp, IonRouterOutlet } from '@ionic/angular';
 import { addIcons } from 'ionicons';
-import { LocalNotificationsService } from './core/services/local-notifications';
 import * as allIcons from 'ionicons/icons';
+import { LocalNotificationsService } from './core/services/local-notifications'; 
+import { defineCustomElements } from '@ionic/pwa-elements/loader';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  templateUrl: 'app.component.html',
   imports: [IonApp, IonRouterOutlet],
+  templateUrl: 'app.component.html',
 })
 export class AppComponent {
-
-  private notifService = Inject(LocalNotificationsService);
+  // 2. Inyección del servicio
+  private notifService = inject(LocalNotificationsService);
 
   constructor() {
     addIcons(allIcons);
     this.notifService.init(); 
+    defineCustomElements(window);
   }
 }

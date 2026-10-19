@@ -1,7 +1,11 @@
-import { AfterViewInit, Component, ElementRef, OnDestroy, ViewChild, inject, signal, computed, CUSTOM_ELEMENTS_SCHEMA} from '@angular/core';
-import { IonContent, IonChip, IonLabel, IonIcon, IonModal, IonButton, NavController} from '@ionic/angular';
+import { 
+  AfterViewInit, Component, ElementRef, OnDestroy, ViewChild, inject, signal, computed, CUSTOM_ELEMENTS_SCHEMA 
+} from '@angular/core';
+import { IonContent, IonChip, IonLabel, IonIcon, IonModal, IonButton, NavController, ViewWillEnter } from '@ionic/angular';
 import { addIcons } from 'ionicons';
-import { map as mapIcon, navigate, navigateCircle, cafe, restaurant, people, information, pricetag, sparkles, close, add, location, checkmarkCircle } from 'ionicons/icons';
+import { 
+  map as mapIcon, navigate, navigateCircle, cafe, restaurant, people, information, pricetag, sparkles, close, add, location, checkmarkCircle 
+} from 'ionicons/icons';
 import * as L from 'leaflet';
 
 import { PLACES_PORT } from '../../core/ports';
@@ -14,10 +18,9 @@ import { CATEGORIAS, CategoriaLugar, Lugar } from '../../core/models';
   templateUrl: './mapa.page.html',
   styleUrls: ['./mapa.page.scss'],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
-  imports: [ IonChip, IonLabel, IonIcon, IonModal, IonButton, IonContent],
-  host: { class: 'ion-page'},
+  imports: [IonChip, IonLabel, IonIcon, IonModal, IonButton, IonContent],
 })
-export class MapaPage implements AfterViewInit, OnDestroy {
+export class MapaPage implements AfterViewInit, OnDestroy, ViewWillEnter {
 
   // IDE: Inyección de dependencias
   private placesPort = inject(PLACES_PORT);
@@ -83,6 +86,13 @@ export class MapaPage implements AfterViewInit, OnDestroy {
     });
   }
 
+  async ionViewWillEnter() {
+    // Recargar lugares y actualizar marcadores cada vez que entres al mapa
+    const lista = await this.placesPort.list();
+    this.lugares.set(lista);
+    this.renderMarkers(); // Si el mapa ya está inicializado, actualiza los marcadores
+  }
+
   // Ciclo de vida: inicialización y destrucción del mapa
   async ngAfterViewInit() {
     const lista = await this.placesPort.list();
@@ -116,7 +126,7 @@ export class MapaPage implements AfterViewInit, OnDestroy {
 
     this.leafletMap.on('dblclick', (e: L.LeafletMouseEvent) => {
       const { lat, lng } = e.latlng;
-      
+
       // Navegamos a la pestaña Añadir pasando las coordenadas
       this.navCtrl.navigateForward('/tabs/anadir', {
         state: { coords: { lat, lng } }
@@ -244,6 +254,10 @@ export class MapaPage implements AfterViewInit, OnDestroy {
   }
 
   formatearCoordenadas(lugar: Lugar): string {
+    // Validamos que lat y lng existan y sean números
+    if (typeof lugar.lat !== 'number' || typeof lugar.lng !== 'number') {
+      return 'Coordenadas no disponibles';
+    }
     const lat = lugar.lat.toFixed(4) + '° N';
     const lng = Math.abs(lugar.lng).toFixed(4) + '° O';
     return `Lat: ${lat} · Lng: ${lng}`;
