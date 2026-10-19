@@ -15,7 +15,7 @@ import { CATEGORIAS, Lugar } from '../../core/models';
   standalone: true,
   templateUrl: './guardados.page.html',
   styleUrls: ['./guardados.page.scss'],
-  imports: [IonHeader, IonToolbar, IonTitle, IonContent, IonIcon, IonButton, IonModal, IonAlert, IonToast, DecimalPipe]
+  imports: [IonHeader, IonToolbar, IonTitle, IonContent, IonIcon, IonButton, IonModal, IonAlert, DecimalPipe]
 })
 export class GuardadosPage implements ViewWillEnter {
 
