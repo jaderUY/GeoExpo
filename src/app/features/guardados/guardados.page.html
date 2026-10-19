@@ -104,14 +104,4 @@
     ]"
     (didDismiss)="isAlertOpen.set(false)">
   </ion-alert>
-
-  <!-- ═══════ TOAST ═══════ -->
-  <ion-toast
-    [isOpen]="toastOpen()"
-    [message]="toastMessage()"
-    [duration]="2500"
-    color="dark"
-    (didDismiss)="toastOpen.set(false)">
-  </ion-toast>
-
 </ion-content>

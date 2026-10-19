@@ -1,6 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, Inject } from '@angular/core';
 import { IonApp, IonRouterOutlet } from '@ionic/angular';
 import { addIcons } from 'ionicons';
+import { LocalNotificationsService } from './core/services/local-notifications';
 import * as allIcons from 'ionicons/icons';
 
 @Component({
@@ -10,5 +11,11 @@ import * as allIcons from 'ionicons/icons';
   imports: [IonApp, IonRouterOutlet],
 })
 export class AppComponent {
-  constructor() {addIcons(allIcons);}
+
+  private notifService = Inject(LocalNotificationsService);
+
+  constructor() {
+    addIcons(allIcons);
+    this.notifService.init(); 
+  }
 }

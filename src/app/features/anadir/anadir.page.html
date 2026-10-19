@@ -1,4 +1,4 @@
-<ion-header translucent="true"  class="ion-no-border" >
+<ion-header translucent="true" class="ion-no-border">
   <ion-toolbar color="light">
     <ion-title class="ion-text-center">Añadir Lugar</ion-title>
   </ion-toolbar>
@@ -7,7 +7,6 @@
 <ion-content class="ion-padding" [fullscreen]="true">
   
   <div class="form-container">
-    
     <!-- Estado de Ubicación -->
     <div class="ubicacion-card">
       @if (cargandoUbicacion()) {
@@ -116,17 +115,5 @@
         Guardar Lugar
       }
     </ion-button>
-
   </div>
-
-  <!-- Toast para mensajes -->
-  <ion-toast
-    [isOpen]="toastOpen()"
-    [message]="toastMessage()"
-    [duration]="3000"
-    color="dark"
-    position="bottom"
-    (didDismiss)="toastOpen.set(false)">
-  </ion-toast>
-
 </ion-content>

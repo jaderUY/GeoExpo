@@ -1,17 +1,14 @@
 import { Component, inject, signal } from '@angular/core';
 import {
-  IonHeader, IonToolbar, IonTitle, IonContent,
-  IonButton, IonIcon, IonModal, IonAlert, IonToast,
-  IonItem, IonInput, IonSpinner, IonAvatar, IonLabel
-} from '@ionic/angular';
-import { FormsModule } from '@angular/forms'; // Necesario para ngModel en los inputs
+  IonHeader, IonToolbar, IonTitle, IonContent, IonButton, IonIcon, IonModal, IonAlert, IonItem, IonInput, IonSpinner, IonAvatar, IonLabel
+} from '@ionic/angular'; 
+import { FormsModule } from '@angular/forms';
 import { addIcons } from 'ionicons';
-import {
-  person, logIn, personAdd, logOut, close, mail, lockClosed, happyOutline
-} from 'ionicons/icons';
+import { person, logIn, personAdd, logOut, close, mail, lockClosed, happyOutline } from 'ionicons/icons';
 
 import { AUTH_PORT } from '../../core/ports';
 import { Usuario } from '../../core/models';
+import { LocalNotificationsService } from '../../core/services/local-notifications'; 
 
 @Component({
   selector: 'app-perfil',
@@ -19,20 +16,15 @@ import { Usuario } from '../../core/models';
   templateUrl: './perfil.page.html',
   styleUrls: ['./perfil.page.scss'],
   imports: [
-    IonHeader, IonToolbar, IonTitle, IonContent,
-    IonButton, IonIcon, IonModal, IonAlert, IonToast,
-    IonItem, IonInput, IonSpinner, IonAvatar, IonLabel,
-    FormsModule
+    IonHeader, IonToolbar, IonTitle, IonContent, IonButton, IonIcon, IonModal, IonAlert, IonItem, IonInput, IonSpinner, IonAvatar, IonLabel, FormsModule
   ],
-  host: { class: 'ion-page' }, // Regla de oro
+  host: { class: 'ion-page' }
 })
 export class PerfilPage {
   private authPort = inject(AUTH_PORT);
+  private notif = inject(LocalNotificationsService); 
 
-  // ── Estado de la sesión ───────────────────────────
-  user = signal<Usuario | null>(null);
-
-  // ── Estado del Modal (Auth) ───────────────────────
+  user = signal<Usuario | null>(null); // estado del usuario actual
   isModalOpen = signal<boolean>(false);
   authMode = signal<'login' | 'register'>('login');
   
@@ -44,21 +36,18 @@ export class PerfilPage {
   // UI
   cargando = signal<boolean>(false);
   isAlertOpen = signal<boolean>(false);
-  toastOpen = signal<boolean>(false);
-  toastMessage = signal<string>('');
+
 
   constructor() {
     addIcons({ person, logIn, personAdd, logOut, close, mail, lockClosed, happyOutline });
   }
 
-  // Hook de Ionic: se ejecuta al entrar a la tab
   async ionViewWillEnter() {
     const currentUser = await this.authPort.currentUser();
     this.user.set(currentUser);
   }
 
   // ── Acciones de Sesión ────────────────────────────
-  
   abrirModal(mode: 'login' | 'register') {
     this.authMode.set(mode);
     this.limpiarFormulario();
@@ -76,12 +65,13 @@ export class PerfilPage {
   }
 
   async procesarAuth() {
+    // 1. Validaciones con Notificaciones Locales
     if (!this.emailInput || !this.passInput) {
-      this.mostrarToast('Por favor, llena todos los campos.');
+      await this.notif.scheduleIn(1, 'Campos vacíos', 'Por favor, llena todos los campos.');
       return;
     }
     if (this.authMode() === 'register' && !this.nameInput) {
-      this.mostrarToast('El nombre es obligatorio.');
+      await this.notif.scheduleIn(1, 'Falta nombre', 'El nombre es obligatorio.');
       return;
     }
 
@@ -97,17 +87,21 @@ export class PerfilPage {
 
       this.user.set(loggedUser);
       this.cerrarModal();
-      this.mostrarToast(`¡Bienvenido, ${loggedUser.name}!`);
+      
+      // 2. Notificación de éxito (Bienvenida)
+      await this.notif.scheduleIn(1, '¡Bienvenido!', `Sesión iniciada como ${loggedUser.name}.`);
       
     } catch (e) {
       console.error(e);
-      this.mostrarToast('Error en la autenticación. Intenta de nuevo.');
+      // 3. Notificación de error
+      await this.notif.scheduleIn(1, 'Error', 'Credenciales incorrectas. Intenta de nuevo.');
     } finally {
       this.cargando.set(false);
     }
   }
 
   confirmarLogout() {
+    // MANTENEMOS EL ALERT porque necesitamos que el usuario confirme
     this.isAlertOpen.set(true);
   }
 
@@ -115,22 +109,20 @@ export class PerfilPage {
     try {
       await this.authPort.logout();
       this.user.set(null);
-      this.mostrarToast('Sesión cerrada correctamente.');
+      
+      // 4. Notificación de cierre de sesión
+      await this.notif.scheduleIn(1, 'Sesión Cerrada', 'Has salido de tu cuenta de GeoExpo.');
+      
     } catch (e) {
       console.error(e);
     }
   }
 
   // ── Helpers ───────────────────────────────────────
-
   private limpiarFormulario() {
     this.emailInput = '';
     this.passInput = '';
     this.nameInput = '';
   }
-
-  private mostrarToast(msg: string) {
-    this.toastMessage.set(msg);
-    this.toastOpen.set(true);
-  }
 }
+

@@ -1,15 +1,11 @@
 import { Component, inject, signal } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import {
-  IonHeader, IonToolbar, IonTitle, IonContent,
-  IonIcon, IonButton, IonModal, IonAlert, IonToast,
-  NavController,
-  ViewWillEnter, // Hook de Ionic
+  IonHeader, IonToolbar, IonTitle, IonContent, IonIcon, IonButton, IonModal, IonAlert, IonToast, NavController, ViewWillEnter
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
-import {
-  bookmark, navigate as navigation, trash, close, location, mapOutline
-} from 'ionicons/icons';
+import { bookmark, navigate as navigation, trash, close, location, mapOutline } from 'ionicons/icons';
+import { LocalNotificationsService } from '../../core/services/local-notifications';
 
 import { PLACES_PORT } from '../../core/ports';
 import { CATEGORIAS, Lugar } from '../../core/models';
@@ -19,24 +15,20 @@ import { CATEGORIAS, Lugar } from '../../core/models';
   standalone: true,
   templateUrl: './guardados.page.html',
   styleUrls: ['./guardados.page.scss'],
-  imports: [
-    IonHeader, IonToolbar, IonTitle, IonContent,
-    IonIcon, IonButton, IonModal, IonAlert, IonToast, DecimalPipe,
-  ],
-  host: { class: 'ion-page' }, // Regla de oro
+  imports: [IonHeader, IonToolbar, IonTitle, IonContent, IonIcon, IonButton, IonModal, IonAlert, IonToast, DecimalPipe]
 })
 export class GuardadosPage implements ViewWillEnter {
+
   private placesPort = inject(PLACES_PORT);
   private navCtrl = inject(NavController);
+  private notif = inject(LocalNotificationsService);
 
   // ── Estado ────────────────────────────────────────
   lugares = signal<Lugar[]>([]);
   lugarSeleccionado = signal<Lugar | null>(null);
-  
+
   isModalOpen = signal<boolean>(false);
   isAlertOpen = signal<boolean>(false);
-  toastOpen = signal<boolean>(false);
-  toastMessage = signal<string>('');
 
   constructor() {
     addIcons({ bookmark, navigation, trash, close, location, mapOutline });
@@ -77,14 +69,12 @@ export class GuardadosPage implements ViewWillEnter {
     if (!lugar) return;
 
     try {
-      // En este caso, "eliminar de guardados" significa quitar el flag
       await this.placesPort.toggleGuardado(lugar.id);
       this.cerrarDetalle();
-      await this.cargarGuardados(); // Recargar lista
-      this.mostrarToast('Lugar eliminado de guardados');
+      await this.cargarGuardados();
+      await this.notif.scheduleIn(1, 'Lugar Eliminado', 'Se quitó de tu lista de guardados.');
     } catch (e) {
       console.error(e);
-      this.mostrarToast('Error al eliminar');
     }
   }
 
@@ -101,10 +91,5 @@ export class GuardadosPage implements ViewWillEnter {
 
   iconoDeCategoria(cat: string): string {
     return CATEGORIAS.find(c => c.key === cat)?.icon ?? 'pricetag';
-  }
-
-  private mostrarToast(msg: string) {
-    this.toastMessage.set(msg);
-    this.toastOpen.set(true);
   }
 }
