@@ -10,7 +10,7 @@ import { environment } from '../../../environments/environment';
 })
 export class AuthHttpAdapter implements AuthPort {
   private http = inject(HttpClient);
-  private base = `${environment.apiUrl}/auth`;
+  private base = `${environment.production}/auth`; //aqui en realidad va environment.production
 
   currentUser() {
     return firstValueFrom(this.http.get<Usuario | null>(`${this.base}/me`));
