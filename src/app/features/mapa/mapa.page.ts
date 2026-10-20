@@ -114,6 +114,9 @@ export class MapaPage implements AfterViewInit, OnDestroy, ViewWillEnter {
 
   // inicialización del mapa: Leaflet, capa de marcadores y marcador de usuario
   private initMap() {
+
+    if (this.leafletMap) return;
+
     const ubi = this.ubicacionUsuario();
     const center: [number, number] = ubi
       ? [ubi.lat, ubi.lng]

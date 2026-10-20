@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Camera, } from '@capacitor/camera';
+import { Camera, CameraResultType, CameraSource } from '@capacitor/camera'; 
 
 export interface Photo {
   name: string;
@@ -9,17 +9,19 @@ export interface Photo {
 
 @Injectable({ providedIn: 'root' })
 export class PhotoService {
-
-  constructor() { }
-
   async takePhoto(): Promise<Photo> {
-    const captured = await Camera.takePhoto({
+    // CORRECCIÓN AQUÍ:
+    const captured = await Camera.getPhoto({
       quality: 90,
+      allowEditing: false,
+      resultType: CameraResultType.Uri,
+      source: CameraSource.Prompt, // Permite elegir cámara o galería
       saveToGallery: false,
     });
+    
     const now = new Date();
     return {
-      name: `photo_${now.getTime()}.jpg`,
+      name: `photo_${now.getTime()}.${captured.format}`,
       source: captured.webPath || '',
       createdAt: now.toISOString(),
     };

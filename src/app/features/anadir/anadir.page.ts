@@ -118,6 +118,7 @@ export class AnadirPage implements ViewWillEnter {
         fotoUrl: this.fotoUrl() || undefined,
         comentario: this.comentario().trim(),
         publico: this.publico(),
+        guardado: true
       };
 
       await this.placesPort.create(nuevoLugar);
