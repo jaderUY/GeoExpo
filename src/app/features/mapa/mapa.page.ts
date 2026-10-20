@@ -154,7 +154,7 @@ export class MapaPage implements AfterViewInit, OnDestroy, ViewWillEnter {
     if (ubi) {
       this.markerUsuario = L.marker([ubi.lat, ubi.lng], { icon: this.iconoUsuario })
         .addTo(this.leafletMap)
-        .bindPopup('Estás aquí 📍');
+        .bindPopup('Estás aquí ');
     }
 
     this.markersLayer.addTo(this.leafletMap);
@@ -246,23 +246,36 @@ export class MapaPage implements AfterViewInit, OnDestroy, ViewWillEnter {
   }
 
   labelDeCategoria(cat: CategoriaLugar): string {
-    return CATEGORIAS.find(c => c.key === cat)?.label ?? 'Otro';
+    if (!cat) return 'Otro';
+    // Convertimos a minúsculas por si acaso se guardó con mayúscula
+    const normalized = cat.toLowerCase(); 
+    return CATEGORIAS.find(c => c.key === normalized)?.label ?? 'Otro';
   }
 
   distanciaTexto(lugar: Lugar): string {
+
     const u = this.ubicacionUsuario();
-    if (!u) return '';
-    const m = this.geo.distanciaMetros(u, { lat: lugar.lat, lng: lugar.lng });
+    // Forzamos a número por si vienen como strings de la base de datos
+    const lat = Number(lugar.lat);
+    const lng = Number(lugar.lng);
+    
+    // Si el usuario no tiene GPS o las coordenadas son inválidas (NaN), no mostramos nada
+    if (!u || isNaN(lat) || isNaN(lng)) return '';
+    
+    const m = this.geo.distanciaMetros(u, { lat, lng });
     return this.geo.formatearDistancia(m);
   }
 
   formatearCoordenadas(lugar: Lugar): string {
-    // Validamos que lat y lng existan y sean números
-    if (typeof lugar.lat !== 'number' || typeof lugar.lng !== 'number') {
+    const lat = Number(lugar.lat);
+    const lng = Number(lugar.lng);
+    
+    if (isNaN(lat) || isNaN(lng)) {
       return 'Coordenadas no disponibles';
     }
-    const lat = lugar.lat.toFixed(4) + '° N';
-    const lng = Math.abs(lugar.lng).toFixed(4) + '° O';
-    return `Lat: ${lat} · Lng: ${lng}`;
+    
+    const latStr = lat.toFixed(4) + '° N';
+    const lngStr = Math.abs(lng).toFixed(4) + '° O';
+    return `Lat: ${latStr} · Lng: ${lngStr}`;
   }
 }

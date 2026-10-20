@@ -53,7 +53,11 @@ export class AnadirPage implements ViewWillEnter {
     const state = window.history.state;
 
     if (state && state.coords) {
-      this.ubicacion.set(state.coords);
+
+      this.ubicacion.set({
+        lat: Number(state.coords.lat),
+        lng: Number(state.coords.lng)
+      });
       this.cargandoUbicacion.set(false);
       window.history.replaceState({}, '', window.location.href);
     } else {
@@ -63,7 +67,7 @@ export class AnadirPage implements ViewWillEnter {
     }
   }
 
-  // ── Lógica ────────────────────────────────────────
+  // Lógica
   async obtenerUbicacion() {
     this.cargandoUbicacion.set(true);
     try {
@@ -113,12 +117,12 @@ export class AnadirPage implements ViewWillEnter {
       const nuevoLugar: Omit<Lugar, 'id' | 'createdAt'> = {
         nombre: this.nombre().trim(),
         categoria: this.categoria(),
-        lat: ubi.lat,
-        lng: ubi.lng,
+        lat: Number(ubi.lat), 
+        lng: Number(ubi.lng), 
         fotoUrl: this.fotoUrl() || undefined,
         comentario: this.comentario().trim(),
         publico: this.publico(),
-        guardado: true
+        guardado: true // Asegúrate de tener esto si quieres que aparezca en guardados por defecto
       };
 
       await this.placesPort.create(nuevoLugar);
