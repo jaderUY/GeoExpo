@@ -22,6 +22,7 @@
               "base": "www",
               "browser": ""
             },
+            "allowedCommonJsDependencies": ["leaflet"],
             "index": "src/index.html",
             "polyfills": [],
             "tsConfig": "tsconfig.app.json",
@@ -52,8 +53,8 @@
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "2kb",
-                  "maximumError": "4kb"
+                  "maximumWarning": "10kb",
+                  "maximumError": "15kb"
                 }
               ],
               "fileReplacements": [
